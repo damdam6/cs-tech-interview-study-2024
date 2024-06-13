@@ -70,7 +70,7 @@
 <br>
 
 
-     ```
+     
      .
      ├── cs-study
      │   ├── week01
@@ -99,7 +99,7 @@
                │     └── {tech-interview-topic-2}
                └── {github-id-3}
                      └── {tech-interview-topic-3}
-     ``` 
+     
 
 <br>
 
