@@ -23,7 +23,7 @@ NIA에서는 네이티브 환경의 특징을 4가지로 정의
 #### 컨테이너 
 **빠른 배포를 가능하게 하는 기술적 토대**  
 경량화된 독립 가상환경  
-![!Pasted image 20240621152014.png](https://github.com/Zerotay/cs-tech-interview-study-2024/blob/main/cs-study/week02/Zerotay/Pasted%20image%2020240621152014.png?raw=true)
+![image](https://github.com/Zerotay/cs-tech-interview-study-2024/assets/67823010/d20f67b9-dd4b-4d31-b440-546cada9c300)
 ##### 기존 방식
 - 앱을 물리 서버에서 실행
 - 세팅에 비용이 발생함
