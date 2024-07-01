@@ -45,3 +45,16 @@
         - @Component, @Controller, @Repository, @Service라는 어노테이션이 붙어있는 객체들을 스캔해 자동으로 Bean에 등록해준다.
     - **@EnableAutoConfiguration**
         - @ComponentScan 이후 사전에 정의한 라이브러리들을 Bean에 등록해준다.
+
+### 참고
+
+**Spring 프레임워크의 구동 순서**
+
+- [https://velog.io/@makjuho/Spring-Spring-Framework-실행순서](https://velog.io/@makjuho/Spring-Spring-Framework-%EC%8B%A4%ED%96%89%EC%88%9C%EC%84%9C)
+- https://tadaktadak-it.tistory.com/108
+- https://devpad.tistory.com/24
+
+**Spring과 Spring Boot의 차이점**
+
+- https://www.inflearn.com/blogs/3315
+- https://programforlife.tistory.com/68
