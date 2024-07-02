@@ -15,18 +15,248 @@
 
 ---
 
-### 💡 사용 경험
-1. 특화 프로젝트 - 빅데이터 분산 (데이터 스트림 처리)
-![Pasted image 20240630171245](./Apache Kafka/Pasted image 20240630171245.png)
+## ✨ 카프카 등장 배경
 
-2. 자율 프로젝트 - MSA 
+![image-20240702163946553](./Apache Kafka/image-20240702163946553.png)
+
+시스템이 복잡해 짐에 따라 데이터를 보내고 받는 시스템 간의 관계가 더욱 복잡해짐.  protocol, data format, data schema 등이 다 다르다면 복잡도는 더욱 올라가게 되었음.
+
+이를 해결하기 위해 링크드인에서 2011년에 Kafka 를 개발하였음.
+
+![image-20240702164140628](./Apache Kafka/image-20240702164140628.png)
+
+위 아키텍처는 시스템간 의존도를 떨어뜨려 모두 Kafka 를 통해 데이터를 주고받게 되어있음. 
+
+### 💡 사용 경험
+
+1. **특화 프로젝트 - 빅데이터 분산 (데이터 스트림 처리)**
+
+  ![Pasted image 20240630171245](./Apache Kafka/Pasted image 20240630171245.png)
+
+  - 카프카를 통해 Youtube Url 을 Spark 로 쏴주고, Spark 에서 데이터 분산 분석을 진행한 뒤 다시 카프카로 Spring 에 전송. 
+
+    - **SpringBoot** 
+
+    ```java
+    public void sendYoutubeUrl(String url) {
+    		try (KafkaProducer<String, String> kafkaProducer = createKafkaProducer()) {
+    			ProducerRecord<String, String> record = new ProducerRecord<>(youtubeUrlTopic, url);
+    			RecordMetadata metadata = kafkaProducer.send(record).get();
+    
+    			System.out.printf("Produced record (key=%s, value=%s) meta(partition=%d, offset=%d)%n",
+    				record.key(), record.value(), metadata.partition(), metadata.offset());
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
+    
+    	public Payload consumeYoutubeAnalyze() {
+    		try (KafkaConsumer<String, String> kafkaConsumer = createKafkaConsumer()) {
+    			while (true) {
+    				ConsumerRecords<String, String> records = kafkaConsumer.poll(Duration.ofMillis(100));
+    				for (ConsumerRecord<String, String> record : records) {
+    					String value = record.value();
+    					System.out.printf("Received record (key=%s, value=%s, partition=%d, offset=%d)%n",
+    						record.key(), value, record.partition(), record.offset());
+    
+    					// 메시지 처리
+    					JSONObject jsonObject = new JSONObject(value);
+    
+    					List<Payload.Comment> commentList = Arrays.stream(jsonObject.getJSONArray("comment_df").toList().toArray())
+    						.map(obj -> {
+    							JSONObject commentObj = new JSONObject((String) obj);
+    							return new Payload.Comment(
+    								commentObj.getString("id"),
+    								commentObj.getString("comments"),
+    								commentObj.getInt("likes"),
+    								commentObj.getInt("dislikes"),
+    								commentObj.getDouble("sentiment"),
+    								commentObj.getInt("label")
+    							);
+    						})
+    						.collect(Collectors.toList());
+    
+    					List<Payload.AnalyzeResult> resultList = Arrays.stream(jsonObject.getJSONArray("cnt_df").toList().toArray())
+    						.map(obj -> {
+    							JSONObject resultObj = new JSONObject((String) obj);
+    							return new Payload.AnalyzeResult(
+    								resultObj.getInt("label"),
+    								resultObj.getInt("count"),
+    								resultObj.getDouble("ratio")
+    							);
+    						})
+    						.collect(Collectors.toList());
+    
+    					JSONObject videoInfoJson = jsonObject.getJSONObject("video_info");
+    					Payload.VideoInfo videoInfo = new Payload.VideoInfo(
+    						videoInfoJson.getString("channel_title"),
+    						videoInfoJson.getString("subscriber_count"),
+    						videoInfoJson.getString("comment_count"),
+    						videoInfoJson.getString("like_count"),
+    						videoInfoJson.getString("title"),
+    						videoInfoJson.getString("view_count")
+    					);
+    
+    					Payload payload = new Payload(commentList, resultList, videoInfo);
+    
+    					// 잘 들어갔는지 확인하려고 출력해봄
+    					ObjectMapper mapper = new ObjectMapper();
+    					String jsonString = mapper.writeValueAsString(payload);
+    					System.out.println(jsonString);
+    
+    					return payload;
+    				}
+    			}
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    		}
+    		return null;
+    	}	
+    
+    ```
+
+    - **Spark Streaming**
+
+      ```python
+      consumer = KafkaConsumer(
+          'youtube_url',
+          bootstrap_servers=['localhost:9092'],
+          auto_offset_reset='latest',  # earliest or latest
+          enable_auto_commit=True,
+          group_id=None
+      )
+      
+      producer = KafkaProducer(bootstrap_servers=['localhost:9092'],
+                               value_serializer=lambda x:
+                               json.dumps(x).encode('utf-8'))
+      ```
+
+      
+
+2. **자율 프로젝트 - MSA** 
      ![Pasted image 20240630171723](./Apache Kafka/Pasted image 20240630171723.png)
 
-3. SSAFY GPT - Kafka Connect
+     - MSA 환경에서 DB간 데이터 정합성을 맞추기 위해 사용.  
+     - 예시
+       - 프롬프트 데이터 동기화를 위해 PromptService -> SearchService (ES) 간 DB 변경이 있을 때 마다 이벤트 발행.
+       - Prompt Service 에서 Notice Service로 이벤트 발행. 
+
+     ```java
+     public NoticeRequest sendUserNotice(String promptUuid, String crntMemberUuid) {
+     
+     		Prompt prompt = promptRepository.findByPromptUuid(UUID.fromString(promptUuid))
+     				.orElseThrow(PromptNotFoundException::new);
+     
+     		NoticeRequest newNotice = new NoticeRequest(crntMemberUuid,
+     				"사용해본 프롬프트를 평가하세요 : " + prompt.getTitle(),
+     				"평가 url");
+     
+     		kafkaProducer.sendNotification("send-notification", newNotice);
+     
+     		return newNotice;
+     	}
+     ```
+
+     
+
+3. **SSAFY GPT - Kafka Connect**
      ![스크린샷 2024-06-30 오후 5.32.58](./Apache Kafka/image3.png)
 
+     - Kafka Connect 를 사용하여 MySQL (소스 DB) 에 변경이 일어날 때 마다 자동으로 감지하여 ES와 정합성을 맞추어줌. (코드 작성 불필요)
+
+       - **Prompt Connector (Source Connector)**
+
+       ```json
+       {
+          "name": "prompt-connector",
+           "config": {
+             "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+             "tasks.max": "1",
+             "database.hostname": "labgptbe.p.ssafy.io",
+             "database.port": "3306",
+             "database.user": "ssafy",
+             "database.password": "ssafy",
+             "database.server.id": "102132",
+             "database.server.name": "GPT_EXTENSION",
+             "connectionTimeZone": "Asia/Seoul",
+             "db.timezone": "Asia/Seoul",
+             "database.whitelist": "ssafyv2",
+             "table.include.list": "ssafyv2.prompt",
+             "topic.prefix": "ssafyv2-mysql",
+             "include.schema.changes": "false",
+             "schema.history.internal.kafka.topic": "dbhistory.prompt",
+             "schema.history.internal.kafka.bootstrap.servers": "kafka1:9092,kafka2:9092,kafka3:9092",
+             "database.history.kafka.bootstrap.servers": "kafka1:9092,kafka2:9092,kafka3:9092",
+             "snapshot.mode": "when_needed",
+             "binary.handling.mode": "base64",
+             "database.history.kafka.topic": "dbhistory.prompt",
+       
+             "transforms": "unwrap,convertPromptUuid,convertMemberUuid",
+             "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+             "transforms.unwrap.drop.tombstones": "false",
+             "transforms.unwrap.delete.handling.mode":"rewrite",
+       
+             "transforms.convertPromptUuid.type": "com.github.cjmatta.kafka.connect.smt.InsertUuid$Value",
+             "transforms.convertPromptUuid.uuid.field.name": "prompt_uuid",
+       
+             "transforms.convertMemberUuid.type": "com.github.cjmatta.kafka.connect.smt.InsertUuid$Value",
+             "transforms.convertMemberUuid.uuid.field.name": "member_uuid"
+       
+           }
+       }	
+       ```
+
+       - **Elastic Search Connector (Sink Connector)**
+
+       ```json
+       {
+          "name": "es-connector",
+          "config": {
+            "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+            "connection.url": "http://elk-elasticsearch-1:9200",
+            "connection.username": "elastic",
+            "connection.password": "gptextension",
+            "connectionTimeZone": "Asia/Seoul",
+            "tasks.max": "1",
+            "topics": "ssafyv2-mysql.ssafyv2.prompt",
+            "type.name": "_doc",
+            "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+            "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+            "key.converter.schemas.enable": "true",
+            "value.converter.schemas.enable": "true",
+            "transforms": "ExtractField, unwrap",
+            "transforms.ExtractField.type": "org.apache.kafka.connect.transforms.ExtractField$Key",
+            "transforms.ExtractField.field": "prompt_id",
+            "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+            "transforms.unwrap.drop.tombstones": "false",
+            "transforms.unwrap.delete.handling.mode": "rewrite",
+            "behavior.on.null.values": "IGNORE",
+            "db.timezone": "Asia/Seoul"
+          }
+       }
+       ```
+
+       
+
 ## 📌 카프카 기초 다지기
+
+### ✔ 카프카 구조
+
+- 단일 모드
+  - Producer, Consumer 는 각기 다른 프로세스에서 비동기로 동작
+
+![image6](./Apache Kafka/image6.png)
+
+- 클러스터 기반
+
+![image7](./Apache Kafka/image7.png)
+
+
+
 ### ✏️ 카프카 구성 요소
+
+![img](./Apache Kafka/image8)
+
 - 주키퍼(Zookeeper) : 카프카의 메타데이터(metadata) 관리 및 브로커의 정상상태 점검(health check)을 담당.
 - 카프카(Kafka) : 여러 대의 브로커를 구성한 클러스터를 의미. 
 - 브로커(broker) : 카프카 어플리케이션이 설치된 서버 또는 노드를 의미.
@@ -54,6 +284,10 @@
 - 확인의 의미. 
 - 프로듀서가 메시지를 보내고,  브로커에 잘 전달이 되었는지 확인하기 위한 옵션.
 - 0, 1, all 
+  - acks=0 : Producer는 acknowledgment를 기다리지 않음(데이터 손실 가능성이 있다.)
+  - acks=1 : producer는 leader acknowledgment를 기다렸다가 다음 액션을 함(제한된 데이터 손실 가능성)
+  - acks=all: leader+ISR acknowledgment를 모두 기다림(no data loss)
+
 
 ---
 
@@ -106,6 +340,17 @@
 ### 📌 KRaft 의 등장과 배경
 - Kafka Raft는 아파치 카프가의 분산 시스템을 관리하기 위해 도입된 새로운 메커니즘.
 - 주키퍼의 의존성은 카프카의 확장성과 유지보수에 여러 제약을 가져왔고, 이를 해결하기 위해 카프카 자체 내에서 분산 시스템의 상태를 관리하는 방식을 도입하기로 결정하였음. 
+
+
+
+### ✨ 주키퍼란
+
+- 분산 코디네이션 시스템.
+- 카프카 브로커를 하나의 클러스터로 코디네이팅하는 역할. 
+- 카프카 클러스터의 리더를 발탁하는 방식을 제공.
+- 새로운 토픽 생성, 브로커 서버 다운 등 카프카 클러스터 내 변화들에 대한 알림을 제공. 
+
+
 
 ### 📌 주키퍼 사용 시 이슈가 되는 부분
 #### 1. 성능적인 부분
@@ -168,6 +413,14 @@
 	- Client, Middleware broker 간의 메시지를 주고 받기 위한 프로토콜
 
 ### 📌 MQ 사용 구분
-- 대용량 데이터 처리, 실시간, 고성능, 고가용성이 필요한 경우, 또는 저장된 이벤트를 기반으로 로그를 추적하고 재처리 하는 것이 필요한 경우 Kafka 사용
-- 복잡한 라우팅을 유연하게 처리해야 하고, 정확한 요청-응답이 필요한 Application을 쓸 때, 혹은 트래픽은 작지만 장시간 실행되고 안정적인 백그라운드 작업이 필요한 경우 RabbitMQ
-- 이벤트 데이터를 DB에 저장하기 때문에 굳이 미들웨어에 이벤트를 저장할 필요가 없는 경우, consumer에게 굳이 꼭 알람이 도착해야한다는 보장 없이 알람처럼 Push 보내는 것만 중요하다면 유지보수가 편한 Redis 를 사용. 
+- 대용량 데이터 처리, 실시간, 고성능, 고가용성이 필요한 경우, 또는 저장된 이벤트를 기반으로 로그를 추적하고 재처리 하는 것이 필요한 경우 **Kafka** 사용
+- 복잡한 라우팅을 유연하게 처리해야 하고, 정확한 요청-응답이 필요한 Application을 쓸 때, 혹은 트래픽은 작지만 장시간 실행되고 안정적인 백그라운드 작업이 필요한 경우 **RabbitMQ**
+- 이벤트 데이터를 DB에 저장하기 때문에 굳이 미들웨어에 이벤트를 저장할 필요가 없는 경우, consumer에게 굳이 꼭 알람이 도착해야한다는 보장 없이 알람처럼 Push 보내는 것만 중요하다면 유지보수가 편한 **Redis** 를 사용. 
+
+---
+
+### ✨ Message Key 방식
+
+- Producer 는 Key(String, Number, etc ..) 를 선택하여 메시지를 보낼 수 있고, Key Hashing 방식을 통해 특정 파티션으로 전송된다.
+
+![img](./Apache Kafka/image9)
