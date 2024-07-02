@@ -17,13 +17,13 @@
 
 ### 💡 사용 경험
 1. 특화 프로젝트 - 빅데이터 분산 (데이터 스트림 처리)
-![Pasted image 20240630171245](/Users/bokyung/cs-study/cs-study/week03/bbookng/Apache Kafka/Pasted image 20240630171245.png)
+![Pasted image 20240630171245](./Apache Kafka/Pasted image 20240630171245.png)
 
 2. 자율 프로젝트 - MSA 
-     ![Pasted image 20240630171723](/Users/bokyung/cs-study/cs-study/week03/bbookng/Apache Kafka/Pasted image 20240630171723.png)
+     ![Pasted image 20240630171723](./Apache Kafka/Pasted image 20240630171723.png)
 
 3. SSAFY GPT - Kafka Connect
-     ![스크린샷 2024-06-30 오후 5.32.58](/Users/bokyung/cs-study/cs-study/week03/bbookng/Apache Kafka/스크린샷 2024-06-30 오후 5.32.58.png)
+     ![스크린샷 2024-06-30 오후 5.32.58](./Apache Kafka/image3.png)
 
 ## 📌 카프카 기초 다지기
 ### ✏️ 카프카 구성 요소
@@ -130,7 +130,7 @@
 
 ### 📌 주키퍼 모드 vs KRaft 모드
 #### 1. 주키퍼 모드
-![스크린샷 2024-04-15 오후 8.10.30](/Users/bokyung/cs-study/cs-study/week03/bbookng/Apache Kafka/스크린샷 2024-04-15 오후 8.10.30.png)
+![스크린샷 2024-04-15 오후 8.10.30](./Apache Kafka/image5.png)
 - 주키퍼 앙상블과 카프카 클러스터가 존재하며, 카프카 클러스터 중 하나의 브로커가 컨트롤러 역할을 하게 됨.
 - 컨트롤러는 파티션의 리더를 선출하는 역할을 하며, 리더 선출 정보를 브로커에게 전파하고 주키퍼에 리더 정보를 기록하는 역할
 - 컨트롤러의 선출 작업은 주키퍼를 통해 이루어지는데, 주키퍼의 임시 노드를 통해 이루어짐.
@@ -138,7 +138,7 @@
 - 이를 통해 한 번에 하나의 컨트롤러만 클러스터에 있도록 보장할 수 있음. 
 
 #### 2. KRaft 모드
-![스크린샷 2024-04-15 오후 8.12.32](/Users/bokyung/cs-study/cs-study/week03/bbookng/Apache Kafka/스크린샷 2024-04-15 오후 8.12.32.png)
+![스크린샷 2024-04-15 오후 8.12.32](./Apache Kafka/image4.png)
 - KRaft 모드는 주키퍼와의 의존성을 제거하고, 카프카 단일 애플리케이션 내에서 메타데이터 관리 기능을 수행하는 독립적인 구조가 되는 것. 
 - 주키퍼 모드에서 1개였던 컨트롤러가 3개로 늘어나고, 이들 중 하나의 컨트롤러가 액티브(그림에서 노란색 컨트롤러) 컨트롤러이면서 리더 역할을 담당
 - 리더 역할을 하는 컨트롤러가 write 하는 역할도 하게 됨.
