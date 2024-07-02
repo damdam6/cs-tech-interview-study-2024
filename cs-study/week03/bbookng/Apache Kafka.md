@@ -157,7 +157,7 @@
      	}
      ```
 
-     
+     - 위와 같은 아키텍처에서 분산 트랜잭션을 위해 2PC, SAGA 패턴이라는 개념이 적용될 수 있음.
 
 3. **SSAFY GPT - Kafka Connect**
      ![스크린샷 2024-06-30 오후 5.32.58](./Apache Kafka/image3.png)
