@@ -109,8 +109,38 @@
     - 동시성 이슈가 자주 발생하면 재시도를 여러번 거칠 것이기 때문에 성능이 좋지 않다.
 3. **네임드 락(Named Lock)**
     1. 네임드 락은 임의로 락의 이름을 설정하고, 해당 락을 사용하여 동시성을 처리하는 방식
-    2. 네임드 락도 비관적 락과 마찬가지로 DB 단에서 Lock을 설정하여 동시성을 처리 하지만, 비관적 락은 테이블에 Lock을 설정하지만 네임드 락은 해당 테이블이 아닌 별도의 공간에 지정한 이름의 Lock을 설정
+    2. 네임드 락도 비관적 락과 마찬가지로 DB 단에서 Lock을 설정하여 동시성을 처리 하지만, 비관적 락은 테이블에 Lock을 설정하지만 네임드 락은 해당 테이블이 아닌 별도의 공간(메타데이터)에 지정한 이름의 Lock을 설정
     3. 네임드 락은 주로 분산 락을 사용하려고 할 때 많이 사용하는 방식
+    
+    ### 사용 방법 예시(Spring JPA)
+    
+    ```java
+    public interface LockRepository extends JpaRepository<Stock, Long> {
+    
+    	//네임드 락의 이름, time out 시간을 설정
+    	@Query(value = "select get_lock(:key, 3000)", nativeQuery = true)
+    	void getLock(String key);
+    
+    	@Query(value = "select release_lock(:key)", nativeQuery = true)
+    	void releaseLock(String key);
+    }
+    ```
+    
+    ### **네임드 락 사용 시 주의점**
+    
+    - 네임드 락을 설정하는 부분과 비즈니스 로직의 트랜잭션을 분리해야 한다.
+    - 로직에 대한 트랜잭션 전파 수준을 REQUIRES_NEW로 설정하여 분리
+    
+    ### **장점**
+    
+    - Lock의 대상이 테이블, 레코드 같은 DB 객체가 아니라 따로 Lock을 위한 공간에 Lock을 설정하기 때문에 같은 Named Lock을 사용하는 작업 이외의 작업은 영향 받지 않는다.
+    
+    ### **단점**
+    
+    - 트랜잭션 종료 시에 Lock 해제, 세션 관리 등을 수동으로 처리해야 하기 때문에 구현이 복잡할 수 있다.
+    - DB에서 락을 관리하기 때문에 DB에 부담이 여전히 존재한다.
+    - 락 획득 시도는 스핀락으로 구현해야하기 때문에 WAS에도 부담이 존재한다.
+    
 
 ### Redis를 활용한 제어
 
@@ -199,9 +229,28 @@
     ### 단점
     
     - 키가 존재하고 키에 저장된 값이 클라이언트의 값과 일치하는 경우에만 잠금이 해제. 하지만 이러한 방식으로 구축된 redis 노드는 단일 장애 지점(SPOF, Single Point Of Failure)이 발생
-    - 이를 위해 Master-Slave 복제(replication) 모드로 redis 서버를 구축하지만 redis의 복제는 비동기식이기 때문에 상황에 따라 경쟁 상태(race condition)가 발생할 수 있다.
+    - 이를 위해 Master-Slave 복제(replication) 모드로 redis 서버를 구축하더라도 redis의 복제는 비동기식이기 때문에 상황에 따라 경쟁 상태(race condition)가 발생할 수 있다.
     - 이를 해결하기 위해 Redisson에서는 분산 락 알고리즘 구현으로 Redlock 알고리즘을 사용
-    - Redisson 내부 구현체의 알고리즘(Redlock)의 한계로 인한 문제가 발생할 수 있음(공부중)
+    - Redisson 내부 구현체의 알고리즘(Redlock)의 한계로 인한 문제가 발생할 수 있음
+    
+    ### **Redlock 알고리즘 요약**
+    
+    - N대의 싱글 노드 레디스가 존재함
+    - 클라이언트에서 잠금을 위해 N대의 노드에 동시 요청(setnx)를 보냄
+    - N대 중 N/2 + 1의 잠금을 획득했다면, 분산락 획득에 성공하게 됨
+    - 만약 실패했다면, 모든 N대의 노드에 해제 요청(delete)을 보냄
+    - random interval 이후에 재시도함
+    
+    ### **Redlock 알고리즘의 한계**
+    
+    - **Clock Drift로 인한 문제**
+        - RedLock 알고리즘은 노드들 간에 동기화된 시계는 없지만, 로컬 시간이 거의 동일한 속도로 갱신된다는 가정에 의존한다. 하지만 현실에서는 클럭이 정확한 속도로 동작하지 않는 클럭 드리프트(Clock Drift) 현상으로 인해 레드락 알고리즘에 문제가 생길 수 있다.
+        - 문제 상황
+            1. 클라이언트 1이 노드 A, B, C에서 잠금을 획득하지만, 네트워크 문제로 인해 D와 E에서는 잠금 획득에 실패한다.
+            2. 이때 노드 C의 시계가 앞으로 이동하여 잠금이 만료된다.
+            3. 클라이언트 2가 노드 C, D, E에서 잠금을 획득하지만, 네트워크 문제로 인해 A와 B에서는 잠금 획득에 실패한다.
+            4. 이제 클라이언트 1과 2는 모두 자신이 잠금을 획득했다고 믿는다.
+    - **애플리케이션 중단 또는 네트워크 지연으로 인한 문제**
 
 ### 비관 락/낙관 락과 Redis 분산락의 사용 상황에 따른 차이
 
@@ -216,3 +265,4 @@
 - https://hudi.blog/distributed-lock-with-redis/
 - [https://velog.io/@yellowsunn/동시성-이슈를-해결하는-다양한-방법](https://velog.io/@yellowsunn/%EB%8F%99%EC%8B%9C%EC%84%B1-%EC%9D%B4%EC%8A%88%EB%A5%BC-%ED%95%B4%EA%B2%B0%ED%95%98%EB%8A%94-%EB%8B%A4%EC%96%91%ED%95%9C-%EB%B0%A9%EB%B2%95)
 - https://jokerkwu.tistory.com/125
+- [https://velog.io/@a01021039107/분산락으로-해결하는-동시성-문제이론편](https://velog.io/@a01021039107/%EB%B6%84%EC%82%B0%EB%9D%BD%EC%9C%BC%EB%A1%9C-%ED%95%B4%EA%B2%B0%ED%95%98%EB%8A%94-%EB%8F%99%EC%8B%9C%EC%84%B1-%EB%AC%B8%EC%A0%9C%EC%9D%B4%EB%A1%A0%ED%8E%B8)
