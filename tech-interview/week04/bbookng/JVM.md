@@ -220,7 +220,136 @@ public class StringExample {
 - 8번 인덱스 처럼 참조하는 대상의 이름만을 String으로 지칭하는 것을 **Symbolic Reference** 라고 함. 이 값이 Crew 데이터의 값을 가리키는 포인트로 사용됨. 
 - 이게 Crew Class 를 Class Loader 를 통해 Method Area로 읽어오면서 Crew Class 를 가리키는 참조값을 변환됨. 
 
+#### *상수풀의 구성
 
+- **Symbolic Reference **
+
+  - Class References : 다른 클래스나 인터페이스 참조
+
+  - Filed References : 클래스 또는 인터페이스의 필드 참조
+
+  - Method References : 메소드 호출에 사용되는 참조 
+
+  - Interface Method References : 인터페이스 내의 메소드 참조
+
+  - Name and Type Descriptors : 필드나 메소드의 이름과 그 타입을 저장
+
+- **리터럴 값 (Literals)**
+
+  - Numeric Literlas : int, float, long, double 과 같은 기본 타입의 숫자 값들
+  - String Literals : 직접적인 문자열 값. 자바 소스 코드 내의 문자열 상수에 해당하며, `ldc` 명령어를 통해 로드됨. 
+
+#### *상수풀의 역할
+
+- **코드 최적화와 관리**
+  - 클래스 파일 내에서 반복되는 정보의 중복 저장을 방지하고, 코드의 재사용과 최적화를 도와줌
+- **실행 시 해석 (Resolving)**
+  - 클래스 파일이 JVM에 로드될 때, 상수풀에 저장된 Symbolic References 는 Direct Reference로 Resolving 되어 JVM 이 실행할 수 있는 형태로 변환됨.
+
+---
+
+### ✔ Symbolic Reference
+
+- **Symbolic Reference 란 ?**
+  - 클래스, 인터페이스, 필드 또는 메서드를 포함하는 참조를 가리키는데 사용되는 개념
+  - 이름, 타입, 그리고 클래스 내에서의 스코프(ex: 클래스 이름) 등의 정보를 기반으로 식별되며, 실제 메모리 주소나 위치와는 독립적
+  - Java 컴파일 과정에서 생성되는 클래스 파일 내에서 해당 요소들이 어떻게 참조되는지를 나타냄.
+  - Java 소스 코드가 컴파일 될 때, 모든 클래스, 메서드, 필드의 참조는 초기에 Symbolic Reference로 표현됨. 
+  - **식별자** 라고 생각. 
+- **간단한 예시**
+  - `Crew` 클래스에서 `name` 필드를 참조하려고 할 때, 컴파일된 코드에서는 `Crew.name` 이라는 **Symbolic Reference**를 사용. **클래스가 로드되고 해석(Resolution)** 과정을 거쳐 JVM은 `Crew` 클래스의 실제 메모리 주소과 `name` 필드의 정확한 위치를 찾아내 **Direct Reference** 로 변환. 
+
+```java
+public class org.jvminternals.SimpleClass
+	SourceFile: "SimpleClass.java"
+	minor version: 0
+	major version: 51
+	flags: ACC_PUBLIC, ACC_SUPER
+     	//상수풀!!! 이 부분을 보세요!
+			Constant pool:
+			   #1 = Methodref          #6.#17         //  java/lang/Object."<init>":()V
+			   #2 = Fieldref           #18.#19        //  java/lang/System.out:Ljava/io/PrintStream;
+			   #3 = String             #20            //  "Hello"
+			   #4 = Methodref          #21.#22        //  java/io/PrintStream.println:(Ljava/lang/String;)V
+			   #5 = Class              #23            //  org/jvminternals/SimpleClass
+			   #6 = Class              #24            //  java/lang/Object
+			   #7 = Utf8               <init>
+			   #8 = Utf8               ()V
+			   #9 = Utf8               Code
+			  #10 = Utf8               LineNumberTable
+			  #11 = Utf8               LocalVariableTable
+			  #12 = Utf8               this
+			  #13 = Utf8               Lorg/jvminternals/SimpleClass;
+			  #14 = Utf8               sayHello
+			  #15 = Utf8               SourceFile
+			  #16 = Utf8               SimpleClass.java
+			  #17 = NameAndType        #7:#8          //  "<init>":()V
+			  #18 = Class              #25            //  java/lang/System
+			  #19 = NameAndType        #26:#27        //  out:Ljava/io/PrintStream;
+			  #20 = Utf8               Hello
+			  #21 = Class              #28            //  java/io/PrintStream
+			  #22 = NameAndType        #29:#30        //  println:(Ljava/lang/String;)V
+			  #23 = Utf8               org/jvminternals/SimpleClass
+			  #24 = Utf8               java/lang/Object
+			  #25 = Utf8               java/lang/System
+			  #26 = Utf8               out
+			  #27 = Utf8               Ljava/io/PrintStream;
+			  #28 = Utf8               java/io/PrintStream
+			  #29 = Utf8               println
+			  #30 = Utf8               (Ljava/lang/String;)V
+			{
+			  public org.jvminternals.SimpleClass();
+				Signature: ()V
+				flags: ACC_PUBLIC
+				Code:
+				  stack=1, locals=1, args_size=1
+					0: aload_0
+					1: invokespecial #1    // Method java/lang/Object."<init>":()V
+					4: return
+				  LineNumberTable:
+					line 3: 0
+				  LocalVariableTable:
+					Start  Length  Slot  Name   Signature
+					  0      5      0    this   Lorg/jvminternals/SimpleClass;
+
+			  public void sayHello();
+				Signature: ()V
+				flags: ACC_PUBLIC
+				Code:
+				  stack=2, locals=1, args_size=1
+					0: getstatic      #2    // Field java/lang/System.out:Ljava/io/PrintStream;
+					3: ldc            #3    // String "Hello"
+					5: invokevirtual  #4    // Method java/io/PrintStream.println:(Ljava/lang/String;)V
+					8: return
+				  LineNumberTable:
+					line 6: 0
+					line 7: 8
+				  LocalVariableTable:
+					Start  Length  Slot  Name   Signature
+					  0      9      0    this   Lorg/jvminternals/SimpleClass;
+			}
+   
+	
+```
+
+- 위의 경우에는 Constant Pool 의 인덱스를 통해 참조. (Symbolic Referece 임)
+
+- 예를 들어 `5: invokevirtual  #4` 명령어는 Constant Pool에서 
+  ```java
+  #4 = Methodref          #21.#22 
+  ↓ // Class.NameAndType → 
+  #21 = Class              #28            //  java/io/PrintStream
+  #22 = NameAndType        #29:#30        //  println:
+  ↓ // java/io/PrintStream 클래스의 println 메서드에서 파라미터로 받은 String 출력, 그리고 Void. 
+  #28 = Utf8               java/io/PrintStream
+  #29 = Utf8               println
+  #30 = Utf8               (Ljava/lang/String;)V
+      
+  // PrintStream.println(String)
+  ```
+
+  - 위 순서로 찾아가게 됨. 
+  - 결과적으로 `#4`의 Symbolic Reference는 참조하고 참조하고 참조하다가 Method를 실행하기 위한 `println` 메서드의 실제 실행 코드 주소로 변환됨.
 
 ---
 
@@ -229,3 +358,5 @@ public class StringExample {
 [JNI (JAVA Native Interface)](https://velog.io/@vrooming13/JNI-JAVA-Native-Interface)
 
 [Maven 과 Gradle](https://velog.io/@leesomyoung/Maven%EA%B3%BC-Gradle%EC%9D%98-%EC%B0%A8%EC%9D%B4-%EB%B0%8F-%EB%B9%84%EA%B5%90)
+
+[Runtime Data Area의 구성](https://velog.io/@indongcha/Runtime-Data-Area%EC%9D%98-%EA%B5%AC%EC%84%B1#runtime-constant-pool)
