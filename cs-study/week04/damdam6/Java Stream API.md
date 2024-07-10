@@ -61,6 +61,9 @@
         - 불필요한 연산을 의도적으로 수행하지 않음
         - 무한 스트림을 다루는데 적합
         
+        - 모든 스트림의 요소를 처리하지 않고도 결과 반환 가능
+            - limit() : 숫자 제한 이후에 불필요한 연산 하지 않음.
+            - findAny() : 한 가지 값을 찾으면 종료됨.
     
     ```java
     List<String> result = Stream.of("java", "streams", "are", "great", "stuff")
@@ -91,6 +94,63 @@
     STREAMS
     GREAT
     ```
+
+    *지연연산(중간연산/최종연산)의 이해를 돕기 위한 테스트 코드*
+
+    ```
+    public class LazyTest {
+
+    public static void main(String[] args) {
+
+        List<String> list = Arrays.asList("test", "lazy", "loading", "show", "result", "light");
+
+        Stream<String> stream = list.stream().filter(
+                text -> {
+                    System.out.println("filter: " + text);
+                    return text.startsWith("l");
+                }
+        );
+
+        System.out.println("stream work?");
+
+        stream = stream.sorted(
+                (text, text2) -> {
+                    System.out.println("sorted: " + text + " " + text2);
+                    return text.compareTo(text2);
+                }
+        );
+
+        System.out.println("stream work? 2");
+
+        List<String> newList = stream.collect(Collectors.toList());
+        }
+    }
+
+    ```
+
+
+
+    결과값
+    ```
+    > Task :LazyTest.main()
+    stream work?
+    stream work? 2
+    filter: test
+    filter: lazy
+    filter: loading
+    filter: show
+    filter: result
+    filter: light
+    sorted: loading lazy
+    sorted: light loading
+    sorted: light loading
+    sorted: light lazy
+
+    ```
+
+
+    
+    32
     
     *주의해야할 것 : 위와 아래의 다른 점은?*
     
@@ -107,7 +167,8 @@
     .sorted(Comparator.comparingInt(Data::getValue))
     .collect(Collectors.toList());
     ```
-    
+    위의 코드는 sorted가 우선하기 때문에 작업이 멈추지 않음. 아래는 limit(5)를 통해 갯수를 제한하여 작업이 종료됨.
+
 
 - stateless operation(상태가 없는 연산) vs stateful operation(상태가 있는 연산)  [ Stream]
     - Stateless operation (상태가 없는 연산)
@@ -140,18 +201,290 @@
 
 ---
 
-### Stream Api의 메서드들을 조사할 예정입니다
+### Stream vs ParallelStream
 
-iterator
+* Stream연산은 기본적으로 순차처리를 진행합니다. 그러나 병렬처리를 원할 경우 ParellelStream을 사용할 수 있습니다.
 
-generator… 등..
+```
+        List<Integer> listOfNumbers = Arrays.asList(1, 2, 3, 4);
+        System.out.println("Stream");
+        listOfNumbers.stream().forEach(number ->
+                System.out.println(number + " " + Thread.currentThread().getName())
+        );
+        System.out.println("ParallelStream");
+        listOfNumbers.parallelStream().forEach(
+                number ->
+                        System.out.println(number + " " + Thread.currentThread().getName())
+        );
 
-각 메서드의 작동 원리 (int, class 등 데이터 종류에 따른 계산 방식 차이도 점검..)
+```
 
-* 빠른가? 빠르다면 왜 빠른가? 느린가?
-* 언제 사용해야 하는가?
+ 아래 결과와 같이 여러개의 스레드를 사용하는 것을 확인할 수 있습니다.
+```
+ > Task :ParellelStream.main()
+Stream
+1 main
+2 main
+3 main
+4 main
+ParallelStream
+3 main
+4 main
+2 ForkJoinPool.commonPool-worker-1
+1 ForkJoinPool.commonPool-worker-2
 
-* 아래는 같이 사용하면 좋은 Lamda 함수 / 함수형 인터페이스(저번에 답변 못한 부분..)을 추가적으로 가볍게 다룰 예정입니다!!!
+```
+
+---
+
+### Primitive type vs Reference type
+
+- 자바 Stream은 참조타입 만을 다룬다.
+    - Stream<T>
+    - **기본 타입 스트림**: `IntStream`, `LongStream`, `DoubleStream`
+    - 박싱/언박싱 발생으로 인한 오버헤드
+        
+        ```java
+        List<Integer> integers = Arrays.asList(1, 2, 3, 4, 5);
+        int sum = integers.stream() // Stream<Integer>
+                          .mapToInt(Integer::intValue) // 언박싱 발생
+                          .sum();
+        System.out.println("Sum: " + sum);
+        
+        ```
+        
+    - IntStream으로 작업하면
+        
+        ```java
+        int[] intArray = {1, 2, 3, 4, 5};
+        // IntStream intStream = Arrays.stream(intArray);
+        int sum = Arrays.stream(intArray) // IntStream
+                        .sum();
+        System.out.println("Sum: " + sum);
+        
+        ```
+        
+
+---
+
+### 사실 스트림 타입은 느립니다
+
+for-loop
+
+Stream
+
+Parallel stream
+
+비교 테스트
+
+10,000,000
+
+![Untitled](Java Stream API//Untitled.png)
+
+```java
+package testForStream;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
+
+public class Big_Size_TEST {
+
+    public static void main(String[] args) {
+        // 데이터 준비
+        List<value> values = generateRandomValues(1_000_000_000); // 데이터 크기 증가
+
+        // for 루프를 사용한 최대 값 찾기
+        long startTimeForLoop = System.nanoTime();
+        int maxForLoop = findMaxUsingForLoop(values);
+        long endTimeForLoop = System.nanoTime();
+        long durationForLoop = (endTimeForLoop - startTimeForLoop) / 1_000_000; // ms
+
+        // 스트림을 사용한 최대 값 찾기
+        long startTimeStream = System.nanoTime();
+        int maxStream = findMaxUsingStream(values);
+        long endTimeStream = System.nanoTime();
+        long durationStream = (endTimeStream - startTimeStream) / 1_000_000; // ms
+
+        // 병렬 스트림을 사용한 최대 값 찾기
+        long startTimeParallelStream = System.nanoTime();
+        int maxParallelStream = findMaxUsingParallelStream(values);
+        long endTimeParallelStream = System.nanoTime();
+        long durationParallelStream = (endTimeParallelStream - startTimeParallelStream) / 1_000_000; // ms
+
+        // 결과 출력
+        System.out.println("For loop max value: " + maxForLoop + ", duration: " + durationForLoop + " ms");
+        System.out.println("Stream max value: " + maxStream + ", duration: " + durationStream + " ms");
+        System.out.println("Parallel stream max value: " + maxParallelStream + ", duration: " + durationParallelStream + " ms");
+    }
+
+    private static List<value> generateRandomValues(int count) {
+        Random random = new Random();
+        List<value> values = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            values.add(new value(random.nextInt()));
+        }
+        return values;
+    }
+
+    private static int findMaxUsingForLoop(List<value> values) {
+        int max = Integer.MIN_VALUE;
+        for (value v : values) {
+            if (v.getV() > max) {
+                max = v.getV();
+            }
+        }
+        return max;
+    }
+
+    private static int findMaxUsingStream(List<value> values) {
+        return values.stream()
+                .map(value::getV)
+                .reduce(Integer.MIN_VALUE, Math::max);
+    }
+
+    private static int findMaxUsingParallelStream(List<value> values) {
+        return values.parallelStream()
+                .map(value::getV)
+                .reduce(Integer.MIN_VALUE, Math::max);
+    }
+
+    static class value {
+        int v;
+
+        value(int v) {
+            this.v = v;
+        }
+
+        public int getV() {
+            return v;
+        }
+    }
+
+}
+
+```
+
+- 복잡도와 숫자가 증가했을 때는 이점이 보입니다.
+
+![Untitled](Java Stream API//Untitled%201.png)
+
+```java
+package testForStream;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class Compli_Loop {
+
+    public static void main(String[] args) {
+        // 데이터 준비
+        List<value> values = generateRandomValues(200_000_000); // 데이터 크기 증가
+
+        // for 루프를 사용한 최대 값 찾기
+        long startTimeForLoop = System.nanoTime();
+        int maxForLoop = findMaxUsingForLoop(values);
+        long endTimeForLoop = System.nanoTime();
+        long durationForLoop = (endTimeForLoop - startTimeForLoop) / 1_000_000; // ms
+
+        // 스트림을 사용한 최대 값 찾기
+        long startTimeStream = System.nanoTime();
+        int maxStream = findMaxUsingStream(values);
+        long endTimeStream = System.nanoTime();
+        long durationStream = (endTimeStream - startTimeStream) / 1_000_000; // ms
+
+        // 병렬 스트림을 사용한 최대 값 찾기
+        long startTimeParallelStream = System.nanoTime();
+        int maxParallelStream = findMaxUsingParallelStream(values);
+        long endTimeParallelStream = System.nanoTime();
+        long durationParallelStream = (endTimeParallelStream - startTimeParallelStream) / 1_000_000; // ms
+
+        // 결과 출력
+        System.out.println("For loop max value: " + maxForLoop + ", duration: " + durationForLoop + " ms");
+        System.out.println("Stream max value: " + maxStream + ", duration: " + durationStream + " ms");
+        System.out.println("Parallel stream max value: " + maxParallelStream + ", duration: " + durationParallelStream + " ms");
+    }
+
+    private static List<value> generateRandomValues(int count) {
+        Random random = new Random();
+        List<value> values = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            values.add(new value(random.nextInt()));
+        }
+        return values;
+    }
+
+    private static int findMaxUsingForLoop(List<value> values) {
+        int max = Integer.MIN_VALUE;
+        for (value v : values) {
+            int processedValue = complexProcessing(v.getV());
+            if (processedValue > max) {
+                max = processedValue;
+            }
+        }
+        return max;
+    }
+
+    private static int findMaxUsingStream(List<value> values) {
+        return values.stream()
+                .map(value::getV)
+                .map(Compli_Loop::complexProcessing)
+                .reduce(Integer.MIN_VALUE, Math::max);
+    }
+
+    private static int findMaxUsingParallelStream(List<value> values) {
+        return values.parallelStream()
+                .map(value::getV)
+                .map(Compli_Loop::complexProcessing)
+                .reduce(Integer.MIN_VALUE, Math::max);
+    }
+
+    // 복잡한 연산을 시뮬레이션하는 메소드
+    private static int complexProcessing(int value) {
+        // 예시: CPU 집약적 연산 시뮬레이션 (단순히 반복 연산)
+        int result = value;
+        for (int i = 0; i < 1000; i++) { // 복잡도 증가
+            result = result ^ (result << 1);
+        }
+        return result;
+    }
+
+    static class value {
+        int v;
+
+        value(int v) {
+            this.v = v;
+        }
+
+        public int getV() {
+            return v;
+        }
+    }
+}
+
+```
+
+---
+
+## 어떤 개발자의 테스트…
+
+![Untitled](Java Stream API//Untitled%202.png)
+
+---
+
+**참고 자료**
+
+
+### 메서드 참조 종류
+
+메서드 참조는 네 가지 주요 유형이 있습니다:
+
+1. **정적 메서드 참조**: `ClassName::methodName`
+2. **인스턴스 메서드 참조 (특정 객체)**: `instance::methodName`
+3. **인스턴스 메서드 참조 (임의의 객체)**: `ClassName::methodName`
+4. **생성자 참조**: `ClassName::new`
 
 ---
 
@@ -193,3 +526,9 @@ https://bugoverdose.github.io/development/stream-operations/
 https://stackoverflow.com/questions/42804226/loop-fusion-of-stream-in-java-8-how-it-works-internally
 
 https://javatute.com/core-java/stateful-vs-stateless-streaming-java/
+
+https://teachingdev.com/for-vs-streams/
+
+https://x.com/xpvit/status/1626899895499063297?s=20
+
+https://devm.io/java/java-performance-tutorial-how-fast-are-the-java-8-streams-118830
