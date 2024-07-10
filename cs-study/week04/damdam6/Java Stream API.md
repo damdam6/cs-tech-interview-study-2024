@@ -279,7 +279,7 @@ Parallel stream
 
 10,000,000
 
-![Untitled](./Java Stream API/Untitled.png)
+![Untitled](./JavaStreamAPI_Image/Untitled.png)
 
 ```java
 package testForStream;
@@ -368,7 +368,7 @@ public class Big_Size_TEST {
 
 - 복잡도와 숫자가 증가했을 때는 이점이 보입니다.
 
-![Untitled](./Java Stream API/Untitled%201.png)
+![Untitled](./JavaStreamAPI_Image/Untitled1.png)
 
 ```java
 package testForStream;
@@ -470,7 +470,7 @@ public class Compli_Loop {
 
 ## 어떤 개발자의 테스트…
 
-![Untitled](./Java Stream API/Untitled%202.png)
+![Untitled](./JavaStreamAPI_Image/Untitled2.png)
 
 ---
 
