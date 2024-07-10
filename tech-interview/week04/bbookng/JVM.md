@@ -32,7 +32,26 @@ public class Outer {
 
 - **비정적 내부 클래스가 외부 클래스의 인스턴스를 참조하는 구조로 인해 Eden 영역에서 객체가 Survivor 영역으로 이동할 때, 외부 클래스 인스턴스가 불필요하게 남아있을 수 있어 메모리 누수를 초래할 수 있고, GC의 효율성을 떨어뜨림.** 
 
+---
 
+###  ✔ Java8 로 변하며 PermG 영역이 사라지고 MetaSpace가 생겼다
+
+- JAVA 7의 JVM
+
+![img](https://blog.kakaocdn.net/dn/cGtn9D/btrMrv6wMdV/rXPqRRsjvkbRNZzuLvkaBK/img.png)
+
+- JAVA 8의 JVM
+
+![img](https://blog.kakaocdn.net/dn/daJ138/btrMp1YW13M/5lwVVETkGAyKqKnhHwtoC1/img.png)
+
+- PermG 영역의 고정된 크기 때문에 OOM 문제를 해결하고자.
+- MetaSpace는 시스템의 네이티브 메모리를 사용하여 클래스 메타데이터를 저장. 필요에따라 동적으로 확장될 수 있기 때문에 위 문제 해결. (OS 레벨에서 관리)
+  - Class의 메타데이터, Method의 메타데이터, Class와 관련된 배열 객체 메타데이터, JVM 내부 객체들과 JIT의 최적화 정보 저장
+  - **static 객체, 변수 및 String Object -> Heap 에 저장** (기존 PermG)
+- **static 변수 및 객체도 Heap 에 저장되기 때문에 GC의 대상이 되긴 함.**
+- 그러나 Class 가 JVM 에 로드될 때 Static 변수 및 객체가 생성되고, **해당 클래스가 메모리에 남아있는 한 static 변수 및 객체를 계속해서 참조**하고 있기 때문에 실질적으로 GC의 대상이 아니라고 볼 수 있음. 
+- 결론적으로 클래스의 생명 주기와 직접 연관되어 클래스가 메모리에 로드되어 있는 한 static 도 유지됨. 
+- 일반적으로 커스텀 클래스 로더를 통해 클래스 로더의 생명 주기를 직접 관리하거나 특정 조건 하에서 클래스를 직접 언로드 하지 않는 이상 보통의 JVM의 클래스 로더는 한 번 로드한 클래스를 클래스 로더가 언로드 되지 않는 이상 언로드 할 수 없음. 그렇기 때문에 로드된 클래스는 재배포 하거나 JVM이 종료되는 시점에 클래스 로더가 언로드 되는 경우를 제외하고는 JVM의 메소드 영역에 보관되며 계속 유효하게 유지됨.  
 
 #### 2. "Hello" 와 new String("Hello")은 각각 어느 메모리 영역에 저장되나요? 만약 그 둘이 다르면 왜 String를 저장하는 방법은 일반적인 참조형 객체를 저장하는 방법과 다른가요?
 
