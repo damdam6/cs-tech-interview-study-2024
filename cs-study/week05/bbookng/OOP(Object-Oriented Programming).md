@@ -67,6 +67,108 @@
 - 모듈이 변경되는 이유가 한 가지 여야 함을 뜻함.
 - 한 클래스는 한 가지 책임에 관한 변경사항이 생겼을 때만 코드를 수정하게 되는 구조가 좋은 구조.
 
+
+
+- 변경의 이유가 **하나** 여야 한다는 것이 이해가 가지 않았다. 
+  - 그럼 클래스 하나당 메서드가 하나여야 한다는 건가 ? 그까지 분리를 하라는 건가 ? 했는데 . . 
+
+
+
+- 가장 이해가 쉬운 예시로 백엔드 개발을 할 때 Service와 Repository 를 구분해서 개발하는 것이라고 예를 들 수 있겠다. 
+
+
+
+- **SRP 를 준수하지 않은 예제**
+
+```java
+// 커피를 만드는 책임, 커피 머신을 청소하는 책임, 사용자에게 알림을 보내는 책임을 모두 가지고 있음. 
+// 만약 커피 만드는 방법이 변경되거나 청소 방법이 변경된다면, CoffeeMachine 클래스는 여러 이유로 변경될 수 있음.
+
+class CoffeeMachine {
+    public void brewCoffee() {
+        // 커피를 만드는 로직
+        System.out.println("Brewing coffee...");
+    }
+
+    public void cleanMachine() {
+        // 커피 머신을 청소하는 로직
+        System.out.println("Cleaning the machine...");
+    }
+
+    public void notifyUser() {
+        // 사용자에게 알림을 보내는 로직
+        System.out.println("Your coffee is ready!");
+    }
+}
+```
+
+
+
+- **SRP를 준수한 예제**
+
+```java
+// 커피를 만드는 클래스
+// 책임 : 커피를 만드는 모든 작업
+// 변경의 이유 : 커피를 만드는 방법이나 종류, 커피의 양이나 농도를 조절하는 방법이 변경될 때 
+class CoffeeMachine {
+    public void brewEspresso() {
+        System.out.println("Brewing espresso...");
+    }
+
+    public void brewLatte() {
+        System.out.println("Brewing latte...");
+    }
+
+    public void setCoffeeStrength(int strength) {
+        System.out.println("Setting coffee strength to " + strength);
+    }
+
+    public void setCoffeeAmount(int amount) {
+        System.out.println("Setting coffee amount to " + amount + "ml");
+    }
+}
+
+// 청소를 담당하는 클래스 
+// 책임 : 커피 머신의 청소 작업
+// 변경의 이유 : 청소 방법이나 청소 과정이 변경될 때
+class CleaningService {
+    public void startCleaning() {
+        System.out.println("Starting cleaning process...");
+    }
+
+    public void cleanWaterTank() {
+        System.out.println("Cleaning water tank...");
+    }
+
+    public void cleanCoffeeGroundsContainer() {
+        System.out.println("Cleaning coffee grounds container...");
+    }
+
+    public void notifyCleaningRequired() {
+        System.out.println("Cleaning required soon.");
+    }
+}
+
+// 알림을 담당하는 클래스
+// 책임 : 사용자에게 알림을 보내는 작업
+// 변경의 이유 : 알림의 내용이나 알림 방법이 변경될 때 
+class UserNotifier {
+    public void notifyCoffeeReady() {
+        System.out.println("Your coffee is ready!");
+    }
+
+    public void notifyMaintenanceRequired() {
+        System.out.println("Maintenance required.");
+    }
+
+    public void notifyLowWaterLevel() {
+        System.out.println("Water level is low.");
+    }
+}
+```
+
+
+
 ### 2. 개방-폐쇄 원칙 (Open Closed Principle)
 - 확장에는 열려있고, 수정에는 닫혀있는. 기존의 코드를 변경하지 않으면서(Closed), 기능을 추가할 수 있도록(Open) 설계가 되어야 한다는 원칙. 
 - 기능 추가 요청이 오면 확장을 통해 손쉽게 구현하면서, 확장에 따른 클래스 수정은 최소화 하도록. 
@@ -148,7 +250,7 @@ public class Main {
 }
 ```
 
-- OCP 를 따른 예시
+- **OCP 를 따른 예시**
 
 ```java
 // 추상화
@@ -234,6 +336,95 @@ public class Main {
 
 ![img](https://velog.velcdn.com/images/harinnnnn/post/2f2c6e85-553f-4afa-83c1-2d2abf722cea/image.png)
 
+- LSP 를 위반한 예제
+
+```java
+class Bird {
+    public void fly() {
+        System.out.println("Flying");
+    }
+}
+
+class Ostrich extends Bird {
+    @Override
+    public void fly() {
+        throw new UnsupportedOperationException("Ostriches cannot fly");
+    }
+}
+
+// 타조는 날 수 없기 때문에 Bird를 상속받았을 때 fly 메서드를 오버라이드 하여 예외를 발생시킴. 
+
+public void letBirdFly(Bird bird) {
+    bird.fly();
+}
+
+Bird sparrow = new Bird();
+letBirdFly(sparrow); // 정상 작동
+
+Bird ostrich = new Ostrich();
+letBirdFly(ostrich); // 예외 발생: UnsupportedOperationException
+
+// Bird 클래스로 대체되지 않아 LSP 를 위반함
+```
+
+
+
+- **LSP 를 준수하는 예제**
+
+```java
+// Bird 를 추상클래스로 만들고
+abstract class Bird {
+    public abstract void makeSound();
+}
+
+// Flyable 인터페이스를 사용하여 날 수 있는 새들과 날 수 없는 새들 분리
+interface Flyable {
+    void fly();
+}
+
+class Sparrow extends Bird implements Flyable {
+    @Override
+    public void makeSound() {
+        System.out.println("Chirp chirp");
+    }
+
+    @Override
+    public void fly() {
+        System.out.println("Flying");
+    }
+}
+
+class Ostrich extends Bird {
+    @Override
+    public void makeSound() {
+        System.out.println("Boom boom");
+    }
+}
+
+public class Main {
+    public static void letBirdFly(Flyable bird) {
+        bird.fly();
+    }
+
+    public static void main(String[] args) {
+        Sparrow sparrow = new Sparrow();
+        letBirdFly(sparrow); // 정상 작동: "Flying"
+
+        Ostrich ostrich = new Ostrich();
+        // letBirdFly(ostrich); // 컴파일 에러: Ostrich는 Flyable이 아님
+
+        Bird bird1 = new Sparrow();
+        bird1.makeSound(); // "Chirp chirp"
+
+        Bird bird2 = new Ostrich();
+        bird2.makeSound(); // "Boom boom"
+    }
+}
+
+```
+
+
+
 ### 4. 인터페이스 분리 원칙 (Interface Segregation Principle)
 - 한 클래스는 자신이 사용하지 않는 인터페이스는 구현하지 말아야 한다.
 - 인터페이스를 잘게 분리함으로써 클라이언트의 목적과 용도에 적합한 인터페이스만을 제공하는 것. 
@@ -246,7 +437,7 @@ public class Main {
 
 
 
-- ISP 를 위반한 예시
+- **ISP 를 위반한 예시**
 
 ```java
 // 스마트폰 인터페이스
@@ -317,7 +508,7 @@ class S3 implements ISmartPhone {
 
 
 
-- ISP 를 지킨 예시
+- **ISP 를 지킨 예시**
 
 ```java
 // 기능별로 인터페이스 분리
@@ -380,7 +571,7 @@ class S3 implements IPhone {
 
 
 
-- DIP를 위반한 예시
+- **DIP를 위반한 예시**
 
 ```java
 public class Kid {
@@ -427,7 +618,7 @@ public class Kid {
 }
 ```
 
-- DIP를 적용한 예시
+- **DIP를 적용한 예시**
 
 ```java
 // Toy 라는 추상클래스와 의존관계를 맺도록 설계
@@ -513,7 +704,7 @@ public class Main{
 ### 4. 다형성 (Polymorphism)
 - 같은 요청으로부터 응답이 객체의 타입에 따라 나르게 나타나는 것. 
 - 어떤 객체의 속성이나 기능이 상황에 따라 여러 형태로 변할 수 있다는 것.
-- 메서드 오브라이딩/오버로딩
+- 메서드 **오브라이딩/오버로딩**
 - 개발 유연성, 코드 재사용성을 제고시킬 수 있음. 
 - 상위 객체의 타입으로 하위 객체를 참조할 수 있음. 
 
@@ -541,3 +732,10 @@ public class Main{
 - 실행 속도가 상대적으로 느리다
   - 클래스로 정의하고 그 안에서 또 변수와 함수를 만들 경우에 이들을 메모리에 저장해야 함. 객체가 호출 받으면 `객체 호출 - 스택 저장 - 지역 변수 저장 - 코드 실행 - 반환 값 return - 호출 정보 제거` 과정을 거쳐야하기 때문에 절차지향보다 느림
 
+
+
+>### 응집도와 결합도
+>
+>응집도는 모듈에 포함된 내부 요소들이 연관되어 있는 정도를 나타낸다.
+>
+>결합도는 의존성의 정도를 나타내며 다른 모듈에 대해 얼마나 많은 정보를 갖고 있는지 나타내는 정도다.
