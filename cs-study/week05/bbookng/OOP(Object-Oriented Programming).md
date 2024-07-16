@@ -682,29 +682,253 @@ public class Main{
 - 이 때, 본질적인 특징을 정의하는 데 활용되는 개념이 **abstract class / interface**
 - 공통의 속성이나 기능을 묶어 이름을 붙이는 것
 - 객체 지향 프로그래밍에서 클래스를 정의하는 것을 추상화라고 한다. 
+
+```java
+// Dog 추상클래스 생성 
+public abstract class Dog {
+    private String name;
+    private String type;
+
+    public Dog(String name, String type) {
+        this.name = name;
+        this.type = type;
+    }
+
+    abstract void howl();
+    abstract void walk();
+
+    public void smell() {
+        System.out.println(name + "이 냄새를 맡습니다.");
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
+    }
+}
+
+public class WelshCorgi extends Dog {
+    public WelshCorgi(String name) {
+        super(name, "웰시코기");
+    }
+
+    @Override
+    void howl() {
+        System.out.println("왈왈! 나는야 " + getName() + ", " + getType());
+
+    }
+
+    @Override
+    void walk() {
+        System.out.println("터벅터벅");
+    }
+
+    @Override
+    public void smell() {
+        super.smell();
+        System.out.println("킁킁");
+    }
+}
+
+public class Maltese extends Dog {
+    public Maltese(String name) {
+        super(name, "말티즈");
+    }
+
+    @Override
+    void howl() {
+        System.out.println("멍멍! 나는야 " + getName() + ", " + getType());
+    }
+
+    @Override
+    void walk() {
+        System.out.println("총총");
+    }
+
+    @Override
+    public void smell() {
+        super.smell();
+        System.out.println("스읍스읍");
+    }
+}
+
+```
+
+- 웰시코기와 말티즈는 모두 "Dog" 개다. 
+- 모든 개들은 이름이 있고, 종이 있고, 짖고 , 걷고, 냄새를 맡을 수 있다. -> 공통적인 특징. "개" 크래스로 추상화
+
+
+
 ### 2. 캡슐화 (Encapsulation)
 - 데이터와 프로세스를 하나의 객체에 위치하도록 만드는 것.
 - 클래스 내의 연관된 속성(property)이나 함수(method)를 하나의 캡슐로 묶어 외부로부터 클래스로의 접근을 최소화하는 것.
 - **하나의 목적**을 위해 필요한 데이터나 메소드를 하나로 묶는 것.
 - 데이터는 외부에서 해당 객체에 접근 시 직접 접근이 아닌 함수를 통해서만 접근하여야 한다. 
+
+> - 은닉화 : 객체의 세부 내용이 외부에 드러나지 않아 외부에서 데이터를 직접 접근하는 것을 방지한다.
+
 - 장점
-	- 외부로부터 클래스의 변수, 함수를 보호
-	- 외부에는 필요한 요소만 노출하고, 내부의 상세한 동작은 은닉
+  - 외부로부터 클래스의 변수, 함수를 보호
+  - 외부에는 필요한 요소만 노출하고, 내부의 상세한 동작은 은닉
 - 접근제한자
-	- `public` : 하위 클래스와 인스턴스에서 접근 가능
-	- `static` : 클래스와 외부에서 접근 가능. 인스턴스에서는 접근 불가
-	- `private` : 클래스 본인만 접근 가능, 하위클래스, 인스턴스 접근 불가
-	- `protected` : 클래스 본인, 하위 클래스에서 접근 가능, 인스턴스 접근 불가 
+  - `public` : 하위 클래스와 인스턴스에서 접근 가능
+  - `static` : 클래스와 외부에서 접근 가능. 인스턴스에서는 접근 불가
+  - `private` : 클래스 본인만 접근 가능, 하위클래스, 인스턴스 접근 불가
+  - `protected` : 클래스 본인, 하위 클래스에서 접근 가능, 인스턴스 접근 불가 
 - 유지보수가 용이하다.
+
+
+
+- **캡슐화를 지키지 않은 코드 예제**
+
+```JAVA
+class Person {
+    public String name;
+    public int age;
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Person person = new Person();
+        // 필드에 직접 접근하여 값을 설정
+        person.name = "Alice";
+        person.age = 25;
+
+        // 필드에 직접 접근하여 값을 출력
+        System.out.println("Name: " + person.name);
+        System.out.println("Age: " + person.age);
+        
+        // 유효하지 않은 값도 직접 설정 가능
+        person.age = -5;
+        System.out.println("Invalid Age: " + person.age);
+    }
+}
+
+```
+
+- **캡슐화를 지킨 코드 예시**
+
+```java
+// Person 클래스에 이름, 나이와 같은 속성과 get, set 메서드를 묶어 캡슐화
+class Person {
+    // 접근 제한자를 통해 은닉화
+    private String name;
+    private int age;
+
+    // 이름을 가져오는 메서드
+    public String getName() {
+        return name;
+    }
+
+    // 이름을 설정하는 메서드
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    // 나이를 가져오는 메서드
+    public int getAge() {
+        return age;
+    }
+
+    // 나이를 설정하는 메서드
+    public void setAge(int age) {
+        if (age > 0) {
+            this.age = age;
+        } else {
+            System.out.println("유효하지 않은 나이입니다.");
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Person person = new Person();
+        // 메서드를 통해 값을 설정
+        person.setName("Alice");
+        person.setAge(25);
+
+        // 메서드를 통해 값을 출력
+        System.out.println("Name: " + person.getName());
+        System.out.println("Age: " + person.getAge());
+        
+        // 유효하지 않은 값 설정 시도
+        person.setAge(-5);  // "유효하지 않은 나이입니다." 메시지 출력
+        System.out.println("Age after invalid attempt: " + person.getAge());
+    }
+}
+
+```
+
+
+
 ### 3. 상속 (Inheritance)
 - 부모 객체의 특징을 그대로 물려받는 것, 자바에서는 인터페이스 상속과 클래스 상속으로 나뉨.
 - 대상을 객체로 추상화/구현할 때, 기존에 구현한 클래스를 재활용하여 구현할 수 있는 것. 
 - 기존 메서드와 변수를 물려받되, 필요한 기능을 더 추가하거나 자식클래에 맞게 재정의하는 방법
 
+```java
+class Animal { 
+		private String name;
+
+		public void setName(String name) {
+        this.name = name;
+    	}
+		public abstract void cry(){
+				System.out.println("ㅜㅜㅜ");
+		}
+}
+
+// Cat 클래스는 Animal 클래스를 상속받았음. 
+// 따라서 모든 코드를 물려 받아 중복코드를 줄이고 수정하고 싶은 cry 메서드만 재정의하였다.
+class Cat extends Animal {
+
+    public void cry() {
+        System.out.println("냐옹냐옹!");
+    }
+}
+```
+
+
+
 ### 4. 다형성 (Polymorphism)
 - 같은 요청으로부터 응답이 객체의 타입에 따라 나르게 나타나는 것. 
 - 어떤 객체의 속성이나 기능이 상황에 따라 여러 형태로 변할 수 있다는 것.
-- 메서드 **오브라이딩/오버로딩**
+- 메서드 **오버라이딩/오버로딩**
+
+  - **오버라이딩** : 부모 클래스의 메서드를 자식 클래스에서 재정의하는 것.
+    - 메소드의 이름이 일치해야 함
+    - 메소드 매개변수의 개수, 순서 그리고 데이터 타입 일치해야 함
+    - 메소드의 return 타입이 일치해야 함
+
+  ```java
+  class Parent {
+      	void display() { 
+  				System.out.println("부모 클래스의 display() 메소드입니다.");
+  		}
+  }
+  
+  class Child extends Parent {
+      	void display() { 
+  				System.out.println("자식 클래스의 display() 메소드입니다.");
+  		}
+  }
+  ```
+
+  - **오버로딩** : 한 클래스에서 메소드 이름은 같지만 파라미터 개수나 자료형을 다르게 하여 서로 다르게 동작하게 하는 것
+    - 메소드의 이름이 일치해야 함
+    - 메소드 매개변수의 개수 또는 타입이 달라야 함 (개수가 같다면 타입, 타입이 같다면 개수를 다르게 해야함)
+    - 메소드의 return 타입이 달라야 함
+
+  ```java
+  void display(int num1){System.out.println(num1)}              
+  void display(int num1, int num2){System.out.println(num1+num2)}
+  void display(int num1, double num2){System.out.println(num1+num2)}
+  ```
+
+  
 - 개발 유연성, 코드 재사용성을 제고시킬 수 있음. 
 - 상위 객체의 타입으로 하위 객체를 참조할 수 있음. 
 
