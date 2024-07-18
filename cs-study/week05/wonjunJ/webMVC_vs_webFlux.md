@@ -58,6 +58,35 @@
         
         들어오는 수많은 데이터를 적절하게 제어해서 과부하가 발생하지 않도록 하는 수단
         
+        특정 조건에서 Upstream에서 발생하는 데이터의 양이 Downstream에서 처리할 수 있는 데이터의 양보다 많을 때 발생하는 문제를 처리하기 위한 기법
+        
+    - **Backpressure의 전략**
+        - **IGNORE:** Backpressure를 적용하지 않는다.
+        - **ERROR:** Downstream으로 전달할 데이터가 버퍼에 가득 찰 경우, Exception을 발생시키는 전략
+        - **DROP:** Downstream으로 전달할 데이터가 버퍼에 가득 찰 경우, 버퍼가 비워질 때 까지 버퍼 밖에서 대기하는 먼저 emit된 데이터부터 Drop 시키는 전략
+        - **LATEST:** Downstream으로 전달할 데이터가 버퍼에 가득 찰 경우, 버퍼가 비워질 때 까지 버퍼 밖에서 대기하는 가장 최근에(나중에) emit된 데이터부터 버퍼에 채우는 전략
+            - **버퍼가 비워질 때 까지인 이유:**
+                
+                Drop 전략의 경우, 버퍼 안의 데이터가 Subscriber에게 한개 전달되면, 버퍼 공간이 한개 비니까 한개의 데이터가 채워지는것이 아니라 전체 버퍼 중에 70-80 퍼센트 정도가 한번에 비워진다고 보시면 될것 같습니다.
+                
+                즉, 데이터 한개가 버퍼에서 비워지는 것이 아니라 버퍼가 가득찬 상태에서 Downstream이 데이터를 처리할 수 있는 상태가 될 때까지 Upstream에서 emit된 데이터는 Drop이 된다고 생각하시면 될것 같습니다.
+                
+        - **BUFFER:** Downstream으로 전달할 데이터가 버퍼에 가득 찰 경우, 버퍼 안에 있는 데이터를 Drop 시키는 전략
+            - **BUFFER DROP-LATEST:** 버퍼가 오버플로우가 발생한다면, 버퍼안의 데이터 중 가장 최근에 들어온 데이터를 Drop 시키는 전략
+            - **BUFFER DROP-OLDEST:** 버퍼가 오버플로우가 발생한다면, 버퍼안의 데이터 중 가장 오래된 데이터를 Drop 시키는 전략
+    - **사용 예시**
+        
+        ```java
+        memberFlupetRepository.findAllByIsDeadIsFalse() //Flux<>타입으로 리턴
+                    .onBackpressureBuffer(256, //최대 버퍼 사이즈는 256
+                        {dropped -> dropList.add(dropped)},
+                        BufferOverflowStrategy.DROP_LATEST)
+                    .publishOn(Schedulers.parallel(), false, 32) //쓰레드를 하나를 더 새로 생성
+                                                //delayError, prefetch
+                    .subscribe(this::handleData) //들어오는 데이터 구독하는 시점(데이터 처리)
+                    { error -> log.error(error.toString()) }
+        ```
+        
 - 특히, MSA환경에서 논 블로킹 방식으로 인해 WebFlux는 높은 성능을 발휘할 수 있다.
     - 이러한 점으로 인해, Spring Cloud Gateway에서는 기본적으로 WebFlux를 사용하는 듯 함(?)
     - WebMVC의 문제점
@@ -77,6 +106,7 @@
 ![Untitled](./comparison.png)
 
 ![Untitled](./spring_stack.png)
+
 ### 공통점
 
 - 둘 다 어노테이션 기반의 프로그래밍 모델로 Spring에서 제공하는 대부분의 어노테이션을 그대로 사용할 수 있다.
@@ -121,7 +151,50 @@
 - Netty는 비동기 처리를 지향하여, 요청을 보낸 뒤 즉시 반환한 다음 다른 작업을 하다 요청한 작업의 처리가 완료되면 나중에 응답 받는 방식
 - 적은 수의 쓰레드로 많은 연결을 모니터링 할 수 있다.
 - 호출되면 작업이 완료될 떄까지 쓰레드가 멈추는 블로킹 방식과 하나의 스레드로 여러 클라이언트를 대응하는 논 블로킹 소켓을 모두 지원
-- HTTP 방식을 소켓에 적용한 모델로 Netty는 추상화 방식을 지원하기 때문에 소켓 모드를 바꾸어도 데이터 송수신 부분의 로직을 변경하지 않도록 작성할 수 있다.
+- HTTP 방식을 소켓에 적용한 모델로 Netty는 추상화 방식을 지원하기 때문에 소켓 모드를 바꾸어도 데이터 송수신 부분의 로직을 변경하지 않도록 작성할 수 있다.(이거는 자바 소켓하고 관련된 얘기인 것 같은데 잘 모르겠음ㅠㅠ)
+- Netty 는 Channel에서 발생하는 이벤트들을 EventLoop가 처리하는 구조를 가진다.
+- **Netty의 구성 요소**
+    - **Channel**
+        - 네트워크 소켓이나, I/O 작업에 대해 양방향으로 동작할 수 있는 통로
+        - Channel의 모든 I/O 동작은 비동기로 동작
+        - 이는 Point-to-Point 통신을 추상화한 개념으로 자바 소켓으로 직접 작업할 때의 복잡성을 완화하는 API를 제공
+        - I/O 작업의 결과 또는 상태에 대한 정보를 ChannelFuture 인스턴스와 함께 반환
+    - **ChannelPipeline**
+        - Channel을 통해 흐르는 인바운드와 아웃바운드 이벤트에 동작하는 ChannelHandler 인스턴스들의 리스트
+        - 각각의 Channel은 ChannelPipeline을 가지고 있다.
+    - **ChannelHandler**
+        - 실제 요청에 대한 처리를 하기 위한 인터페이스
+        - 인바운드와 아웃바운드 데이터 처리에 적용되는 애플리케이션 로직의 컨테이너 역할을 한다.(비즈니스 로직이 들어가는 곳)
+    - **Bootstrap**
+        - 네트워크 계층을 구성하기 위한 컨테이너를 제공하며, 여기에는 프로세스를 지정된 포트에 바인딩하거나 한 프로세스를 지정된 포트의 지정된 호스트에서 실행 중인 다른 프로세스에 연결하는 등의 일을 한다.
+        - 일반적으로 연결에 대해 포트에 바인딩하는 것을 Server측의 BootStrap 이라고하며, 지정된 포트의 호스트에 연결하는 것을 Client측의 BootStrap이라고 한다.
+        - Server측의 BootStrap은 2개의 EventLoopGroup을 가지고, Client측은 1개의 EventLoopGroup을 가진다.
+            
+            ![Untitled](./server_eventloop.png)
+            
+    - **EventLoopGroup**
+        - EventLoopGroup은 EventLoop들의 그룹으로, 같은 그룹에 속한 EventLoop들은 쓰레드와 같은 몇몇 리소스들을 공유하게 된다.
+        - 워커 스레드(EventLoop)는 초기화 시점 런타임에 사용할 수 있는 프로세서 수로 세팅된다.
+    - **EventLoop**
+        - 이벤트를 실행하기 위한 무한루프 스레드
+        - EventLoop는 절대 변경되지 않는 정확히 하나의 쓰레드에 의해 구동
+        - 단일 EventLoop가 여러 채널을 서비스하도록 할당될 수 있다.
+        - **기본 동작:** 객체(Event Emitters)에서 발생한 이벤트는 이벤트 큐에 입력되고 EventLoop는 큐에 입력된 이벤트가 있을 때 해당 이벤트를 꺼내서 이벤트를 실행
+        - 지원하는 쓰레드 종류에 따라 단일 쓰레드 EventLoop와 다중 쓰레드 EventLoop로 나뉜다.
+        - 처리한 이벤트의 결과를 돌려주는 방식에 따라 Callback과 Future 패턴으로 나뉜다.
+        - 일반적으로 Netty는 단일 쓰레드 이벤트 와 다중 쓰레드 이벤트 모두 종류에 상관없이 순서를 보장
+            - **이유:** 하나의 Channel에서 발생한 이벤트는 항상 동일한 EventLoop의 쓰레드에서 처리되기 때문에 발생 순서와 처리 순서가 일치하게 된다. 또한 EventLoop 쓰레드의 이벤트 큐 공유를 막기위해 각 이벤트 큐를 각 Loop Thread 내부에 두기 때문에 순서 보장이 가능하다.
+    - **BossGroup**
+        - 각 포트별로 접속을 허용해주는 그룹
+        - Tomcat에서는 Acceptor의 역할과 동일한 역할을 수행하며, 커넥션이 정상적으로 이루어질 경우 Accepted 된 채널을 WorkerThread로 전달
+    - **WorkerGroup**
+        - 논 블로킹 모드에서 채널에 읽기와 쓰기 작업을 논 블로킹으로 처리할 수 있다.
+- **동작과정**
+    
+    ![Untitled](./netty.png)
+    
+    BossGroup을 통해 Accepted된 채널들이 각 워커 쓰레드로 전달되고, 해당 Worker Group은 해당된 채널의 이벤트에 따라 EventLoop가 동작된다. 각 EventLoop에는 각자의 이벤트 큐를 보유하고 있어 이벤트의 순서를 보장해 줄 수 있고, 해당되는 Channel들은 PipeLine에 구축된 ChannelHandler들의 체이닝에 따라 동작이 진행되는 구조이다.
+    
 
 ### 차이점
 
@@ -131,3 +204,14 @@ Tomcat은 전통적인 서블릿 기반의 웹 어플리케이션 서버(WAS)로
 Tomcat은 대규모 웹 어플리케이션을 처리하기 최적화되어 있어 일반적으로 단일 코어로 수천 개의 동시 연결을 처리할 수 있다.
 - Netty는 더 적은 기능을 제공하지만, 모듈식 아키텍처를 사용해 개발자가 필요한 기능만 사용할 수 있다. HTTP 뿐만 아니라 다양한 프로토콜을 지원하여 유연성이 높다.
 Tomcat은 Java EE 표준에 따라 작동하며 추가적인 확장이나 커스터마이징이 어려울 수 있다.
+
+### 참고
+
+- [https://velog.io/@c65621/Spring-WebFlux-탄생-배경-MVC와의-비교-그리고-장단점](https://velog.io/@c65621/Spring-WebFlux-%ED%83%84%EC%83%9D-%EB%B0%B0%EA%B2%BD-MVC%EC%99%80%EC%9D%98-%EB%B9%84%EA%B5%90-%EA%B7%B8%EB%A6%AC%EA%B3%A0-%EC%9E%A5%EB%8B%A8%EC%A0%90)
+- https://devuna.tistory.com/108
+- https://corono.tistory.com/33
+- https://simgee.tistory.com/30
+- https://velog.io/@akfls221/Netty
+- https://mumomu.tistory.com/176
+- https://hbase.tistory.com/116
+- [https://velog.io/@wnwjq462/Spring-Webflux-Netty-기본-개념](https://velog.io/@wnwjq462/Spring-Webflux-Netty-%EA%B8%B0%EB%B3%B8-%EA%B0%9C%EB%85%90)
