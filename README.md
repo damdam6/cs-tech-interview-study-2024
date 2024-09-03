@@ -30,28 +30,18 @@
 **스터디 준비**
 
 1. 매주 발표자 2명, 기술면접대비자 3명을 선정합니다.
-2. 각각의 역할에 따라 **금요일 20:00**까지 자료 초안을 준비합니다.<br>
+2. 각각의 역할에 따라 **토요일 12:00**까지 자료 초안을 준비합니다.<br>
     - 발표자는 주제에 대해 10분~15분 분량의 발표를 준비합니다.
     - 발표자의 초안은 기본적인 발표내용을 포함하면 됩니다.
     - 기술면접대비자는 하나의 질문을 고르고 그에 대한 기본 답변을 준비합니다.
 3. 레포지토리를 **fork**한 뒤, 자료 초안을 포함한 **PR을 요청**합니다.
-4. **토요일 12:00**까지 PR에 review를 다는 형식으로 피드백을 주고 받습니다.
+4. **일요일 00:00**까지 PR에 review를 다는 형식으로 피드백을 주고 받습니다.
    - 더 궁금한 점
    - 오류사항
    - 추가적으로 보충하면 좋을 주제 <br>
    위의 사항 중 하나를 각 자료별 1개 이상 작성해주세요.
 5. 피드백을 바탕으로 초안을 수정하고 **화요일 19:00**에 스터디를 진행합니다.
 
-<br>
-
-**스터디 당일**
-<br>
-
-| 시간 | 진행 |
-|:--:|:--:|
-| 19:00 ~ 20:00 | CS 이론 발표 및 지식 공유 |
-| 20:00 ~ 21:30 | 모의 기술면접 / 추가 질문 |
-| 21:30 ~ 22:00 | 피드백 및 다음 주제 선정 |
 
 
 <br>
@@ -71,34 +61,49 @@
 
 
      
-     .
-     ├── cs-study
-     │   ├── week01
-     │   │   ├── {github-id-1}
-     │   │   │     └── {cs-study-topic-1}
-     │   │   └── {github-id-2}
-     │   │         └── {cs-study-topic-2}
-     │   └── week02
-     │       ├── {github-id-1}
-     │       │     └── 이주제로발표합니다.md
-     │       └── {github-id-2}
-     │             ├── 메인피드백을받을.md
-     │             └── 자유로운업로드방식.ppt
-     └── tech-interview
-         ├── week01
-         │   ├── {github-id-1}
-         │   │     └── {tech-interview-topic-1}
-         │   ├── {github-id-2}
-         │   │     └── {tech-interview-topic-2}
-         │   └── {github-id-3}
-         │         └── {tech-interview-topic-3}
-         └── week02
-               ├── damdam6
-               │     └── 네트워크7계층.md
-               ├── {github-id-2}
-               │     └── {tech-interview-topic-2}
-               └── {github-id-3}
-                     └── {tech-interview-topic-3}
+```angular2html
+.
+|   README.md
+|
+|
++---week01
+|   +---http-https
+|   |       http-https.md
+|   |
+|   +---mongoDB자세히알아보기
+|   |   |   MongoDB 깊게 탐구하기.md
+|   |   |
+|   |   \---MongoDB 깊게 탐구하기 이미지
+|   |           Untitled 1.png
+|   |           Untitled.png
+|   |
+|   +---transaction isolation level
+|   |       transaction isolation level.md
+|   |
+|   +---what_happens_if_you_enter_url
+|   |       what_happens_if_you_enter_url.md
+|   |
+|   \---트랜잭션 스크립트 패턴 vs 도메인 모델 패턴
+|       |   트랜잭션 스크립트 패턴 vs 도메인 모델 패턴.md
+|       |
+|       \---트랜잭션 스크립트 패턴 vs 도메인 모델 패턴
+|               Untitled 1.png
+|               Untitled.png
+|
+\---{week00}
+    +---{topic}
+    |   |   {topic}.md
+    |   |
+    |   \---{image folder}
+    |           {image 1}.png
+    |           {image 2}.png
+    |           {image}.png
+    |
+    \---{topic 2}
+            {topic 2-1}.md
+            {topic 2-2}.md
+
+```
      
 
 <br>
@@ -137,6 +142,6 @@ feat(week01):네트워크7계층-추가
 
 **PR Convention**
 
-1. PR 제목은 `week{00} - {github-id} - {cs-study or tech-interview}`로 통일합니다.
+1. PR 제목은 `week{00} - {github-id}`로 통일합니다.
 2. PR 내용에는 자료에 대한 간략한 설명을 적어주세요.
 3. 초안 PR 후 피드백을 받아 수정할 때는 PR 내용에 수정사항을 명시해주세요.
