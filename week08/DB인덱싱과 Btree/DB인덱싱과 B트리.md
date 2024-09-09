@@ -46,7 +46,7 @@ Status: Not started
 
 ### 왜 DB index로 B tree 계열이 사용 되는가?
 
-![Untitled](./image/Untitled 1.png)
+![Untitled](./image/Untitled_1.png)
 
 ![Untitled](./image/Untitled 2.png)
 
