@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="ad4f4952-a8ef-47c8-96e9-a5faa51b6e6d" name="Changes" comment="docs: readme 수정&#10;&#10;- 폴더 구조 변경&#10;- 제출 시간 변경" />
+    <list default="true" id="ad4f4952-a8ef-47c8-96e9-a5faa51b6e6d" name="Changes" comment="docs: readme 수정&#10;&#10;- 폴더 구조 변경&#10;- 제출 시간 변경">
+      <change beforePath="$PROJECT_DIR$/week08/DB인덱싱과 Btree/DB인덱싱과 B트리.md" beforeDir="false" afterPath="$PROJECT_DIR$/week08/DB인덱싱과 Btree/DB인덱싱과 B트리.md" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />

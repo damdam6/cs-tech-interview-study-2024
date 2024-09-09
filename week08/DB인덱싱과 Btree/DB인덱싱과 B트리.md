@@ -1,6 +1,5 @@
 # DB인덱싱-B-트리
 
-Status: Not started
 
 ## B tree의 개념과 데이터 삽입 동작
 
