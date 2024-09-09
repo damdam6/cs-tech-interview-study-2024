@@ -10,7 +10,7 @@ Status: Not started
     
 - 만약 자식 노드를 3개 이상으로 변경한다면? (B tree)
     
-    ![Untitled](/image/Untitled.png)
+    ![Untitled]( ./image/Untitled.png)
     
     - 각각이 범위를 갖게 됨.
     - 이를 위해 부모 노드에 key를 하나 이상 저장
@@ -46,9 +46,9 @@ Status: Not started
 
 ### 왜 DB index로 B tree 계열이 사용 되는가?
 
-![Untitled](/image/Untitled%201.png)
+![Untitled]( ./image/Untitled 1.png)
 
-![Untitled](/image/Untitled%202.png)
+![Untitled]( ./image/Untitled 2.png)
 
 - 비슷한 시간 복잡도의 알고리즘 말고  왜 B tree를 쓰는가?
     - secondary storage (SSD, HDD)
@@ -60,11 +60,10 @@ Status: Not started
                 - 연관된 데이터를 모아서 저장하면 더 효율적으로 읽고 쓸 수 있음.
         
         ⇒ secondary storage에 최대한 적게 접근하는 것이 성능 면에서 좋다.
-        
-    
+
     - 탐색 범위
         
-        ![Untitled](/image/Untitled%203.png)
+        ![Untitled]( ./image/Untitled 3.png)
         
         - 탐색 범위를 빠르게 좁힐 수 있다.
         - 노드를 하나 읽어온다고 해도 결국 block을 읽어옴
@@ -74,11 +73,11 @@ Status: Not started
 - B tree의 강력함
     - Best Case
         
-        ![Untitled](/image/Untitled%204.png)
+        ![Untitled]( ./image/Untitled 4.png)
         
     - Worst Case
         
-        ![Untitled](/image/Untitled%205.png)
+        ![Untitled]( ./image/Untitled 5.png)
         
     - 낮은 높이로 많은 수의 데이터 담을 수 있음.
         - root 노드에서 가장 멀리 있는 데이터도 세 번의 이동만으로 접근 가능
@@ -101,11 +100,11 @@ Status: Not started
     - PK
     - unique + not null
 
-![Untitled](/image/Untitled%206.png)
+![Untitled]( ./image/Untitled 6.png)
 
 ### 논 클러스터링 인덱스
 
-![Untitled](/image/Untitled%207.png)
+![Untitled]( ./image/Untitled 7.png)
 
 - 별도의 인덱스 페이지 생성 (공간 요구됨)
 - 리프 페이지에 실제 데이터 페이지 주소 담음
@@ -114,7 +113,7 @@ Status: Not started
 
 ### 다수의 인덱스는 어떻게 동작하는가?
 
-![Untitled](/image/Untitled%208.png)
+![Untitled](./image/Untitled 8.png)
 
 - 인덱스 주소는 값이 추가/삭제 될 경우 변경되기 때문에 클러스터링 인덱스가 연결되어 있음.
 
