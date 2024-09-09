@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="ad4f4952-a8ef-47c8-96e9-a5faa51b6e6d" name="Changes" comment="" />
+    <list default="true" id="ad4f4952-a8ef-47c8-96e9-a5faa51b6e6d" name="Changes" comment="docs: readme 수정&#10;&#10;- 폴더 구조 변경&#10;- 제출 시간 변경" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -22,7 +25,9 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "damdam6-week08",
     "last_opened_file_path": "/Users/bokyung/cs-study",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
   }
@@ -41,5 +46,9 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="docs: readme 수정&#10;&#10;- 폴더 구조 변경&#10;- 제출 시간 변경" />
+    <option name="LAST_COMMIT_MESSAGE" value="docs: readme 수정&#10;&#10;- 폴더 구조 변경&#10;- 제출 시간 변경" />
   </component>
 </project>
