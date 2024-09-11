@@ -66,6 +66,7 @@
     - 이 방식은 일반적으로 우리가 웹 어플리케이션을 개발할 때 가장 많이 마주치는 시나리오로 이에 해당하는 상황일 때 브라우저는 요청을 한번에 보내지 않고 **예비 요청과 본 요청**으로 나누어서 서버로 전송한다.
     - Simple Request와 같은 요청이 아닌 경우 브라우저는 접근할 리소스를 가지고 있는 서버에 **preflight Request (예비 요청)을 보낸다.**
     - 이 예비 요청에는 HTTP 메소드 중 **`OPTIONS`** 메소드가 사용된다. 예비 요청의 역할은 본 요청을 보내기 전에 **브라우저 스스로 이 요청을 보내는 것이 안전한지 확인하는 것**이다. 이때 내용물은 없이 헤더만 전송
+    - 참고로 Preflight Request 방식은 많은 리소스를 잡아 먹는다. 그렇기 때문에 서버에서 **"Access-Control-Max-Age" 헤더 정보**를 통해서 Preflight Request 를 캐싱함으로써 그 효율을 높힐 수 있다.
     - Preflight Request 시나리오의 흐름 과정
         
         ![Untitled](https://velog.velcdn.com/images/effirin/post/7f4848b8-a230-458a-ba09-3b8d9d982370/image.png)
