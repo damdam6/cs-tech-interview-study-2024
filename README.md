@@ -2,6 +2,7 @@
 
 <br>
 
+**[🐥 시즌2 주제 리스트업 🐥](https://github.com/damdam6/cs-tech-interview-study-2024/wiki/%EC%8B%9C%EC%A6%8C2-%EC%A3%BC%EC%A0%9C-%EB%A6%AC%EC%8A%A4%ED%8A%B8%EC%97%85)**
 
 <br>
 
