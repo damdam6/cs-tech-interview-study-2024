@@ -6,6 +6,9 @@
 
 ---
 
+**[🐣 시즌1 주제 리스트업 🐣](https://github.com/damdam6/cs-tech-interview-study-2024/wiki/%EC%8B%9C%EC%A6%8C1-%EC%A3%BC%EC%A0%9C-%EB%A6%AC%EC%8A%A4%ED%8A%B8%EC%97%85)**
+<br>
+
 **스터디 구성원**
 
 | [damdam6](https://github.com/damdam6) | [Damongsanga](https://github.com/Damongsanga) | [bbookng](https://github.com/bbookng) | [wonjunJ](https://github.com/wonjunJ) | [Zerotay](https://github.com/Zerotay) |
