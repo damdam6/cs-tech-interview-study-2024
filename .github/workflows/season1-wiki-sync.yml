@@ -1,0 +1,26 @@
+name: Season1 Sync Wiki to README
+
+on:
+  push:
+    paths:
+      - '*.wiki.git/시즌1-주제-리스트업.md' # Wiki 특정 파일 업데이트 시 트리거
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Clone Wiki Repository
+        run: |
+          git clone https://github.com/damdam6/cs-tech-interview-study-2024.wiki.git wiki
+          cat wiki/시즌1-주제-리스트업.md > season1_week01-17/README.md
+
+      - name: Commit Changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add season1_week01-17/README.md
+          git commit -m "Update season1_week01-17/README.md with Wiki content"
+          git push
