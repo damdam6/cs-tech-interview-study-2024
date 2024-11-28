@@ -1,6 +1,14 @@
 # 기술면접 & CS 학습 스터디
 
+<br>
+
+
+<br>
+
 **[🐣 시즌1 소개 바로 가기 🐣](https://github.com/damdam6/cs-tech-interview-study-2024/tree/main/season1_week01-17/Season1_README.md)**
+<br>
+**[🐣 시즌1 주제 리스트업 🐣](https://github.com/damdam6/cs-tech-interview-study-2024/wiki/%EC%8B%9C%EC%A6%8C1-%EC%A3%BC%EC%A0%9C-%EB%A6%AC%EC%8A%A4%ED%8A%B8%EC%97%85)**
+
 <br>
 
 ### 스터디 소개

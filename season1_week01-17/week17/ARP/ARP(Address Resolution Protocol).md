@@ -24,13 +24,13 @@
 
 1. 192.168.1.0/24 네트워크 전체에게 아래와 같은 ARP Request를 보낸다.
     
-    ![Untitled](./same_LAN1.png)
+    ![Untitled](same_LAN1.png)
     
 2. Switch-A는 PC-A의 ARP Request 패킷을 받고 PC-A의 MAC 주소를 테이블에 기록한다. 만약 스위치의 ARP 테이블에 192.168.1.4의 MAC 주소가 없다면, 이 패킷을 네트워크 전체에 브로드캐스팅한다.
 3. PC-B와 PC-C는 자신이 192.168.1.4/24가 아니므로 이 ARP Request 를 폐기
 4. Laptop-A는 자신이 192.168.1.4/24이므로 자신의 ARP 테이블에 PC-A의 MAC 주소를 기록하고, 자신의 MAC 주소를 알려주기 위해 아래와 같은 정보를 담아서 ARP Response 패킷을 전달한다.
     
-    ![Untitled](./same_LAN2.png)
+    ![Untitled](same_LAN2.png)
     
 5. Switch-A는 다시 Laptop-A의 MAC 주소를 ARP테이블에 기록하게되고, 이 정보를 PC-A로 전달한다.
 
@@ -44,16 +44,16 @@
 1. PC0은 192.168.1.2를 찾는 ARP Request 를 생성하지만 MAC 주소는 모르는 상태
 2. 같은 대역이 아니기 때문에 아래와 같은 정보를 담은 패킷은 Default Gateway로 전달된다. 여기서는 Router0에 해당
     
-    ![Untitled](./other_LAN1.png)
+    ![Untitled](other_LAN1.png)
     
 3. Router0는 PC0의 MAC 주소를 기록하고, 패킷의 목적지가 자신의 네트워크 대역이 아니기 때문에 Router1로 패킷을 라우팅한다.
 4. Router1은 받은 패킷을 확인하고 192.168.1.0/24에 192.168.1.2를 찾기 위해 아래와 같은 정보를 담은 ARP Requset를 브로드캐스팅한다.
     
-    ![Untitled](./other_LAN2.png)
+    ![Untitled](other_LAN2.png)
     
 5. PC2는 자신이 192.168.1.2/24이므로 이 패킷에 응답한다. 하지만 이 패킷은 Router1이 보낸 ARP Request이므로 목적지는 Router1로 하여 ARP Response를 보낸다.
     
-    ![Untitled](./other_LAN3.png)
+    ![Untitled](other_LAN3.png)
     
 6. Router1은 PC2의 MAC 주소를 기록하고, 이제 PC0과 PC2는 Router0, Router1 에 기록된 MAC 테이블을 기반으로 통신이 가능하다.
 
