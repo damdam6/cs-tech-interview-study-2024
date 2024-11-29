@@ -31,7 +31,7 @@
 
 ### Hash Collision 해시 충돌
 
-![./image/image.png](image.png)
+![image.png](./image/image.png)
 
 - 해시 충돌이란?
     - 해시함수는 해시값의 갯수보다 많은 키값을 해시값으로 변환하기 때문에 해시함수가 서로 다른 두 개의 키에 대해 동일한 해시값을 내는 해시충돌이 발생한다.
