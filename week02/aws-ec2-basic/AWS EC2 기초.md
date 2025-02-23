@@ -84,7 +84,7 @@ EC2(Elastic Cloud Compute)는 aws의 가장 기본이 되는 컴퓨팅 리소스
 유형을 잘 고르는 것은 꽤나 중요한 작업이다.  
 ![image.png](https://itg.singhinder.com?url=https://gist.githubusercontent.com/Zerotay/7a1217be30eb1a6e729bbc88588c1da2/raw/image.png)  
 대체로 cpu와 메모리 개수만으로 인스턴스의 스펙이 결정되는 것 같지만, 스펙이 커질 때마다 보장되는 각종 성능이 더 높아진다.  
-디스크 작업이 많이 일어나는 어플리케이션을 활용하는 상황이라면, nvme가 부착된 환경을 이용하는 것이 적절할 것이다.  
+디스크 작업이 많이 일어나는 어플리케이션을 활용하는 상황이라면, diskIO가 매우 빠른 nvme가 부착된 환경을 이용하는 것이 적절할 것이다.  
 ## 키 타입  
 ![image.png](https://itg.singhinder.com?url=https://gist.githubusercontent.com/Zerotay/b98a1f45e4ffad78bbd153b003b2a493/raw/image.png)  
 ssh 키페어를 설정하는 부분으로 우측 버튼을 눌러 바로 하나 만들어서 넣어준다.  
@@ -149,6 +149,8 @@ curl -H "X-aws-ec2-metadata-token: $TOKEN"  http://169.254.169.254/latest/meta-d
 ![image.png](https://itg.singhinder.com?url=https://gist.githubusercontent.com/Zerotay/3f357acc462e6f97a83c6db520de5aac/raw/image.png)  
 ebs에 들어가보면 현재 실행 중인 인스턴스가 받은 볼륨이 보인다.  
 이 볼륨은 기본적으로 하나의 가용영역에서만 사용할 수 있다.  
+볼륨은 고가용성과 영속성을 더 엄밀한 영역에서 보장해주는 스냅샷과 다르게 하나의 가용영역에만 저장되기 때문이다.  
+(참고로 볼륨은 기본적으로 하나의 인스턴스에만 부착될 수 있다.)
 그러나 이걸 스냅샷으로 만들면, 한 리전의 모든 가용영역에서 스냅샷으로부터 볼륨을 만들고 활용할 수 있게 된다.  
 이를 구체적으로 보기 위해, 별도의 볼륨을 하나 만들고 이를 스냅샷화하여 다른 가용영역에서 각각 마운팅해보자.  
 ![image.png](https://itg.singhinder.com?url=https://gist.githubusercontent.com/Zerotay/1277b85527f52127ea44a08e87d84e94/raw/image.png)  
