@@ -108,6 +108,14 @@ PriorityQueue<Person> pq = new PriorityQueue<>(
               .thenComparingInt(p -> p.age)
               .thenComparing(p -> p.name)
 );
+
+//만약 나이만 오름차순으로 정렬하고 싶다면?
+PriorityQueue<Person> pq = new PriorityQueue<>(
+    Comparator.comparingInt((Person p) -> p.score)
+        .thenComparingInt(p -> p.age).reversed()
+        .thenComparing(p -> p.name)
+);
+
 ```
 
 -  성능 상에는 차이가 거의 없다고 한다!
