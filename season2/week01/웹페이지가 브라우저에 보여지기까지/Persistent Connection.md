@@ -1,0 +1,1 @@
+![Persistent Connection](https://github.com/user-attachments/assets/3752e8af-425a-4d7f-be5a-dd7e5e09df3e)
